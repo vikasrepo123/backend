@@ -2,47 +2,63 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-// ✅ Import DB connection function
+// DB
 const { connectToDatabase } = require("./lib/mongodb");
 
-// ✅ Import Routes
+// Routes
 const storyRoutes = require("./routes/storyRoutes");
 const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/users");  // <-- USERS ROUTE FILE
 
+// ---------------------
+// CREATE EXPRESS APP
+// ---------------------
 const app = express();
 
+console.log("🔥 Starting backend server…");
+console.log("MAIL_USER:", process.env.MAIL_USER);
+console.log("MAIL_PASS:", process.env.MAIL_PASS ? "[SET]" : "[NOT SET]");
+console.log("SMTP_HOST:", process.env.SMTP_HOST);
+
 // ---------------------
-// 🔥 MIDDLEWARES
+// MIDDLEWARES
 // ---------------------
 app.use(express.json());
-
-// Serve uploaded files
+app.use(cors());
 app.use("/uploads", express.static("public/uploads"));
 
-app.use(cors());
-
 // ---------------------
-// 🔥 CONNECT TO MONGODB AT STARTUP
+// CONNECT MONGO
 // ---------------------
 connectToDatabase()
-  .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB error:", err));
 
 // ---------------------
-// 🔥 ROUTES
+// ROUTES
 // ---------------------
+console.log("🔧 Mounting routes…");
+
 app.use("/auth", authRoutes);
-app.use("/stories", storyRoutes);
+console.log("✔ /auth routes loaded");
 
-// Health Check
+app.use("/stories", storyRoutes);
+console.log("✔ /stories routes loaded");
+
+app.use("/users", userRoutes);
+console.log("✔ /users routes loaded");   // IMPORTANT LOG
+
+// ---------------------
+// HEALTH CHECK
+// ---------------------
 app.get("/", (req, res) => {
   res.send("Backend is running…");
 });
 
 // ---------------------
-// 🔥 START SERVER
+// START SERVER
 // ---------------------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`🚀 Backend running on http://127.0.0.1:${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`🚀 Backend running: http://127.0.0.1:${PORT}`);
+});

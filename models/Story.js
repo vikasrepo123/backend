@@ -1,3 +1,4 @@
+// models/Story.js
 const mongoose = require("mongoose");
 
 const storySchema = new mongoose.Schema({
@@ -49,10 +50,37 @@ const storySchema = new mongoose.Schema({
     default: 0,
   },
 
+  // track which users liked/disliked
+  likedBy: {
+    type: [String],
+    default: [],
+  },
+
+  dislikedBy: {
+    type: [String],
+    default: [],
+  },
+
   views: {
     type: Number,
     default: 0,
   },
+
+  // admin may hide a story (moderation)
+  hidden: {
+    type: Boolean,
+    default: false,
+  },
+
+  // reports array: store userId + reason + optional details
+  reports: [
+    {
+      userId: { type: String },
+      reason: { type: String, required: true },
+      details: { type: String, default: "" },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
 
   anonymous: {
     type: Boolean,
@@ -77,5 +105,8 @@ const storySchema = new mongoose.Schema({
     }
   ]
 });
+
+// optional index to speed up trending queries
+storySchema.index({ views: -1, likes: -1, createdAt: -1 });
 
 module.exports = mongoose.model("Story", storySchema);

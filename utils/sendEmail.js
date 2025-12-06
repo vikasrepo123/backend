@@ -1,38 +1,15 @@
 // backend/utils/sendEmail.js
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 const {
-  SMTP_HOST,
-  SMTP_PORT,
-  MAIL_USER,     // from .env
-  MAIL_PASS,     // from .env
+  RESEND_API_KEY,
   FROM_NAME,
   FROM_EMAIL,
   OTP_TTL_MINUTES
 } = process.env;
 
-// Create transporter (Hostinger SMTP)
-const transporter = nodemailer.createTransport({
-  host: SMTP_HOST,
-  port: Number(SMTP_PORT) || 465,
-  secure: Number(SMTP_PORT) === 465,  // port 465 = secure: true
-  auth: {
-    user: MAIL_USER,
-    pass: MAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
-// Optional: verify SMTP connection on server start
-transporter.verify((err, success) => {
-  if (err) {
-    console.log("SMTP VERIFY ERROR:", err);
-  } else {
-    console.log("SMTP READY ✓");
-  }
-});
+// Initialize Resend client
+const resend = new Resend(RESEND_API_KEY);
 
 // Send OTP Email
 async function sendOtpEmail({ to, otp, purpose, name }) {
@@ -90,14 +67,19 @@ async function sendOtpEmail({ to, otp, purpose, name }) {
   </div>
   `;
 
-  const mailOptions = {
-    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
-    to,
-    subject,
-    html,
-  };
+  try {
+    const result = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to,
+      subject,
+      html,
+    });
 
-  return transporter.sendMail(mailOptions);
+    return result;
+  } catch (err) {
+    console.error("RESEND EMAIL ERROR:", err);
+    throw err;
+  }
 }
 
 module.exports = { sendOtpEmail };

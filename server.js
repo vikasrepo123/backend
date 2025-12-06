@@ -9,6 +9,8 @@ const { connectToDatabase } = require("./lib/mongodb");
 const storyRoutes = require("./routes/storyRoutes");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/users");
+const adminRoutes = require("./routes/adminRoutes");
+
 
 // ---------------------
 // CREATE EXPRESS APP
@@ -25,7 +27,7 @@ console.log("MAIL_PASS:", process.env.MAIL_PASS ? "[SET]" : "[NOT SET]");
 app.use(express.json());
 app.use(cors());
 app.use("/uploads", express.static("public/uploads"));
-
+app.use("/admin", adminRoutes);
 // ---------------------
 // CONNECT MONGO
 // ---------------------
